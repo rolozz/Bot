@@ -1,0 +1,32 @@
+spring:
+  application:
+   name: BotService
+
+server:
+  port: 8081
+
+telegram:
+  bot:
+    username: YourDaddyBroBot
+    token: 1041138600:AAH8y_TV9GAQCYsA93hzmiG11icnqKoUYC0
+    nasa_key: nS5zpfblxt2aIWGfAbTX0g6RgiowykErhhAMo6hm
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      getTodayPhoto:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5000ms
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 2
+
+      getRandomPhoto:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5000ms
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 2
