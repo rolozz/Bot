@@ -9,15 +9,10 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResultArticle;
-import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResultPhoto;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
@@ -28,25 +23,26 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class TelegramBotServiceImpl implements TelegramBotService {
 
-    private static final int MAX_CAPTION_LENGTH = 1024;
     private static final Random RANDOM = new Random();
     private final ApodService apodService;
 
-    @Override
-    public void handleCommand(Long chatId, String command, TelegramLongPollingBot bot) {
-        switch (command) {
-            case "/start" -> sendOptionsKeyboard(chatId, bot);
-            case "/предсказание" -> sendPrediction(chatId, bot);
-            case "/фото_дня" -> sendPhotoOfDay(chatId, bot);
-            case "/случайное_фото" -> sendRandomPhoto(chatId, bot);
-            default -> sendTextMessage(chatId, "Неизвестная команда", bot);
-        }
-    }
-
     public void handleInlineQuery(InlineQuery inlineQuery, TelegramLongPollingBot bot) {
+        // Получаем информацию о пользователе, который инициировал запрос
+        Long userId = inlineQuery.getFrom().getId();
+        String firstName = inlineQuery.getFrom().getFirstName();
+        String lastName = inlineQuery.getFrom().getLastName();
+        String userName = inlineQuery.getFrom().getUserName();
+        String languageCode = inlineQuery.getFrom().getLanguageCode();
+        Boolean isBot = inlineQuery.getFrom().getIsBot();
+        String fullName = firstName + (lastName != null ? " " + lastName : "");
+
+        // Логирование для отладки
+        log.info("User Info: ID = {}, Full Name = {}, Username = {}, Language Code = {}, Is Bot = {}",
+                userId, fullName, userName, languageCode, isBot);
+
         InlineQueryResultArticle predictionResult = createPredictionResult();
-        InlineQueryResultPhoto apodResult = createApodResult();
-        InlineQueryResultPhoto randomApodResult = createRandomApodResult();
+        InlineQueryResultArticle apodResult = createApodResult();
+        InlineQueryResultArticle randomApodResult = createRandomApodResult();
 
         AnswerInlineQuery answer = new AnswerInlineQuery();
         answer.setInlineQueryId(inlineQuery.getId());
@@ -60,104 +56,56 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         InlineQueryResultArticle predictionResult = new InlineQueryResultArticle();
         predictionResult.setId("1");
         predictionResult.setTitle("Получить предсказание ✨");
-        predictionResult.setDescription("Нажмите, чтобы получить случайное предсказание");
 
         InputTextMessageContent predictionContent = new InputTextMessageContent();
         predictionContent.setMessageText(formatAsQuote(generatePrediction()));
         predictionResult.setInputMessageContent(predictionContent);
-
+        predictionResult.setThumbnailUrl("https://i.postimg.cc/SQGYpbFg/owl.jpg");
         return predictionResult;
     }
 
-    private InlineQueryResultPhoto createApodResult() {
-        InlineQueryResultPhoto apodResult = new InlineQueryResultPhoto();
+    private InlineQueryResultArticle createApodResult() {
+        InlineQueryResultArticle apodResult = new InlineQueryResultArticle();
         apodResult.setId("2");
-        apodResult.setTitle("Получить фото дня 📷");
-        apodResult.setDescription("Нажмите, чтобы увидеть фото дня");
+        apodResult.setTitle("Получить фото дня NASA 📷");
+        apodResult.setThumbnailUrl("https://i.postimg.cc/mkVP3CNv/ND.jpg");
 
         ApodResponse apod = getApodPhoto();
+        String messageText;
+
         if (apod != null && apod.getUrl() != null) {
-            String caption = formatCaption(apod.getExplanation());
-            apodResult.setPhotoUrl(apod.getUrl());
-            apodResult.setThumbnailUrl(apod.getUrl());
-            apodResult.setCaption(caption);
+            messageText = "📷 *Фото дня от NASA*\n\n"
+                    + "*" + apod.getUrl() + "*\n\n"
+                    + apod.getExplanation();
         } else {
-            apodResult.setCaption("🌌 К сожалению, фото дня недоступно.");
+            messageText = "🌌 К сожалению, фото дня недоступно.";
         }
 
+        InputTextMessageContent content = createInputTextMessageContent(messageText);
+        apodResult.setInputMessageContent(content);
         return apodResult;
     }
 
-    private InlineQueryResultPhoto createRandomApodResult() {
-        InlineQueryResultPhoto randomApodResult = new InlineQueryResultPhoto();
+    private InlineQueryResultArticle createRandomApodResult() {
+        InlineQueryResultArticle randomApodResult = new InlineQueryResultArticle();
         randomApodResult.setId("3");
         randomApodResult.setTitle("Получить случайное фото 🎲");
-        randomApodResult.setDescription("Нажмите, чтобы увидеть случайное фото");
+        randomApodResult.setThumbnailUrl("https://i.postimg.cc/1zNNxgsF/AP2.jpg");
 
         ApodResponse randomApod = getRandomApodPhoto();
+        String messageText;
+
         if (randomApod != null && randomApod.getUrl() != null) {
-            String caption = formatCaption(randomApod.getExplanation());
-            randomApodResult.setPhotoUrl(randomApod.getUrl());
-            randomApodResult.setThumbnailUrl(randomApod.getUrl());
-            randomApodResult.setCaption(caption);
+            messageText = "📷 *Случайное фото от NASA*\n\n"
+                    + "*" + randomApod.getUrl() + "*\n\n"
+                    + randomApod.getExplanation();
         } else {
-            randomApodResult.setCaption("📷 К сожалению, случайное фото дня недоступно.");
+            messageText = "📷 К сожалению, случайное фото дня недоступно.";
         }
 
+        InputTextMessageContent content = createInputTextMessageContent(messageText);
+        randomApodResult.setInputMessageContent(content);
         return randomApodResult;
-    }
-
-    @Override
-    public void handleCallback(Long chatId, String callbackData, TelegramLongPollingBot bot) {
-        handleCommand(chatId, callbackData, bot);
-    }
-
-    private void sendPrediction(Long chatId, TelegramLongPollingBot bot) {
-        sendTextMessage(chatId, "Ваше предсказание: " + formatAsQuote(generatePrediction()), bot);
-    }
-
-    private void sendPhotoOfDay(Long chatId, TelegramLongPollingBot bot) {
-        apodService.getTodayPhoto().subscribe(
-                response -> sendPhotoMessage(chatId, response.getUrl(), response.getExplanation(), bot),
-                error -> log.error("Ошибка при получении фото дня: {}", error.getMessage())
-        );
-    }
-
-    private void sendRandomPhoto(Long chatId, TelegramLongPollingBot bot) {
-        apodService.getRandomPhoto().subscribe(
-                response -> sendPhotoMessage(chatId, response.getUrl(), response.getExplanation(), bot),
-                error -> log.error("Ошибка при получении случайного фото: {}", error.getMessage())
-        );
-    }
-
-    private void sendOptionsKeyboard(Long chatId, TelegramLongPollingBot bot) {
-        SendMessage message = new SendMessage(chatId.toString(), "Выберите действие:");
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(List.of(
-                List.of(createButton("🔮 Предсказание", "/предсказание")),
-                List.of(createButton("📷 Фото дня", "/фото_дня")),
-                List.of(createButton("🎲 Случайное фото", "/случайное_фото"))
-        ));
-        message.setReplyMarkup(markup);
-        executeSafely(message, bot);
-    }
-
-    private InlineKeyboardButton createButton(String text, String callbackData) {
-        InlineKeyboardButton button = new InlineKeyboardButton(text);
-        button.setCallbackData(callbackData);
-        return button;
-    }
-
-    private void sendTextMessage(Long chatId, String text, TelegramLongPollingBot bot) {
-        executeSafely(new SendMessage(chatId.toString(), text), bot);
-    }
-
-    private void sendPhotoMessage(Long chatId, String photoUrl, String caption, TelegramLongPollingBot bot) {
-        SendPhoto message = new SendPhoto();
-        message.setChatId(chatId.toString());
-        message.setPhoto(new InputFile(photoUrl));
-        message.setCaption(caption);
-        executeSafely(message, bot);
     }
 
     private void executeSafely(Object message, TelegramLongPollingBot bot) {
@@ -190,14 +138,14 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         return apodService.getRandomPhoto().block();
     }
 
-    private String formatCaption(String caption) {
-        if (caption.length() > MAX_CAPTION_LENGTH) {
-            return caption.substring(0, MAX_CAPTION_LENGTH);
-        }
-        return caption;
-    }
-
     private String formatAsQuote(String text) {
         return "❝ " + text + " ❞";
+    }
+
+    private InputTextMessageContent createInputTextMessageContent(String messageText) {
+        InputTextMessageContent content = new InputTextMessageContent();
+        content.setMessageText(messageText);
+        content.setParseMode("Markdown");
+        return content;
     }
 }

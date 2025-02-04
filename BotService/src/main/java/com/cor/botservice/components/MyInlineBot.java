@@ -35,12 +35,7 @@ public class MyInlineBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            telegramBotService.handleCommand(update.getMessage().getChatId(), update.getMessage().getText(), this);
-        } else if (update.hasCallbackQuery()) {
-            telegramBotService.handleCallback(update.getCallbackQuery().getMessage().getChatId(),
-                    update.getCallbackQuery().getData(), this);
-        } else if (update.hasInlineQuery()) {
+        if (update.hasInlineQuery()) {
             telegramBotService.handleInlineQuery(update.getInlineQuery(), this);
         }
     }
@@ -55,3 +50,4 @@ public class MyInlineBot extends TelegramLongPollingBot {
         return botToken;
     }
 }
+
