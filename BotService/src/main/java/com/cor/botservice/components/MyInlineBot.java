@@ -50,4 +50,3 @@ public class MyInlineBot extends TelegramLongPollingBot {
         return botToken;
     }
 }
-

@@ -1,0 +1,24 @@
+package com.cor.managementservice.dto;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
+
+import java.io.Serializable;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+@ToString
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class JokeDto implements Serializable {
+
+    String name;
+    Boolean isActive = true;
+
+}

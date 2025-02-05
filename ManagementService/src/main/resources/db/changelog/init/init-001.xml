@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Changeset для таблицы 'Joke' -->
+    <changeSet id="00001" author="markusha">
+        <createTable tableName="joke">
+            <column name="uuid" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Индекс для столбца is_active в таблице Joke -->
+        <createIndex indexName="idx_is_active" tableName="joke">
+            <column name="is_active"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Changeset для таблицы 'RequestInfo' -->
+    <changeSet id="00002" author="markusha">
+        <createTable tableName="request_info">
+            <column name="uuid" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="chat_id" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="subscribe_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Changeset для таблицы 'Subscribe' -->
+    <changeSet id="00003" author="markusha">
+        <createTable tableName="subscribe">
+            <column name="uuid" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="city" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="count" type="bigint"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
