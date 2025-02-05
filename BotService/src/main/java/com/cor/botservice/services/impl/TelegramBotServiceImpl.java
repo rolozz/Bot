@@ -27,19 +27,6 @@ public class TelegramBotServiceImpl implements TelegramBotService {
     private final ApodService apodService;
 
     public void handleInlineQuery(InlineQuery inlineQuery, TelegramLongPollingBot bot) {
-        // Получаем информацию о пользователе, который инициировал запрос
-        Long userId = inlineQuery.getFrom().getId();
-        String firstName = inlineQuery.getFrom().getFirstName();
-        String lastName = inlineQuery.getFrom().getLastName();
-        String userName = inlineQuery.getFrom().getUserName();
-        String languageCode = inlineQuery.getFrom().getLanguageCode();
-        Boolean isBot = inlineQuery.getFrom().getIsBot();
-        String fullName = firstName + (lastName != null ? " " + lastName : "");
-
-        // Логирование для отладки
-        log.info("User Info: ID = {}, Full Name = {}, Username = {}, Language Code = {}, Is Bot = {}",
-                userId, fullName, userName, languageCode, isBot);
-
         InlineQueryResultArticle predictionResult = createPredictionResult();
         InlineQueryResultArticle apodResult = createApodResult();
         InlineQueryResultArticle randomApodResult = createRandomApodResult();
@@ -68,6 +55,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         InlineQueryResultArticle apodResult = new InlineQueryResultArticle();
         apodResult.setId("2");
         apodResult.setTitle("Получить фото дня NASA 📷");
+
         apodResult.setThumbnailUrl("https://i.postimg.cc/mkVP3CNv/ND.jpg");
 
         ApodResponse apod = getApodPhoto();
@@ -83,6 +71,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
         InputTextMessageContent content = createInputTextMessageContent(messageText);
         apodResult.setInputMessageContent(content);
+
         return apodResult;
     }
 
@@ -90,6 +79,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         InlineQueryResultArticle randomApodResult = new InlineQueryResultArticle();
         randomApodResult.setId("3");
         randomApodResult.setTitle("Получить случайное фото 🎲");
+
         randomApodResult.setThumbnailUrl("https://i.postimg.cc/1zNNxgsF/AP2.jpg");
 
         ApodResponse randomApod = getRandomApodPhoto();
@@ -105,6 +95,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
         InputTextMessageContent content = createInputTextMessageContent(messageText);
         randomApodResult.setInputMessageContent(content);
+
         return randomApodResult;
     }
 
