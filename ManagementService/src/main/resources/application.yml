@@ -1,0 +1,31 @@
+server:
+  port: 8082
+
+spring:
+  application:
+   name: ManagementService
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/manager
+    username: root
+    password: root
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate.hibernate.format_sql: true
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order-inserts: true
+        order-updates: true
+        batch-versioned-data: true
+    hibernate:
+      ddl-auto: none
+
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yml
+    drop-first: false
+
