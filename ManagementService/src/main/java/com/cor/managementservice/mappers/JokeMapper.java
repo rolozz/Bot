@@ -9,8 +9,7 @@ import java.util.List;
 
 @Mapper(componentModel = "Spring")
 public interface JokeMapper {
-
-    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "name", source = "name")
     Joke toEntity(JokeDto jokeDto);
 
     List<Joke> toEntityList(List<JokeDto> jokeDtoList);

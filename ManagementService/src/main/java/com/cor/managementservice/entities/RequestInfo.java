@@ -2,6 +2,8 @@ package com.cor.managementservice.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +12,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
+import java.util.UUID;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,13 +21,14 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Subscribe {
+public class RequestInfo {
 
     @Id
-    String username;
-    String name;
-    String city;
-    Long count;
+    UUID uuid = UUID.randomUUID();
+    String chatId;
+    @ManyToOne
+    @JoinColumn(name = "username")
+    Subscribe username;
 
 
 }

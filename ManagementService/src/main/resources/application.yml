@@ -29,3 +29,5 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yml
     drop-first: false
 
+joke:
+  backup-file: D:/BD/reserve.json
