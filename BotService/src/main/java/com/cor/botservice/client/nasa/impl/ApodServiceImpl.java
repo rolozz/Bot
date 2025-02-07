@@ -1,10 +1,11 @@
-package com.cor.botservice.services.impl;
+package com.cor.botservice.client.nasa.impl;
 
 import com.cor.botservice.dto.ApodResponse;
-import com.cor.botservice.services.ApodService;
+import com.cor.botservice.client.nasa.ApodService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,20 +23,8 @@ public class ApodServiceImpl implements ApodService {
     private String nasaKey;
 
     @Autowired
-    public ApodServiceImpl(WebClient nasaWebClient) {
-        this.webClient = nasaWebClient;
-    }
-
-    @Override
-    @CircuitBreaker(name = "getTodayPhoto", fallbackMethod = "getTodayPhotoFallback")
-    public Mono<ApodResponse> getTodayPhoto() {
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/planetary/apod")
-                        .queryParam("api_key", nasaKey)
-                        .build())
-                .retrieve()
-                .bodyToMono(ApodResponse.class)
-                .doOnNext(response -> log.info("Ответ от NASA today: {}", response));
+    public ApodServiceImpl(@Qualifier("nasaWebClient") WebClient webClient) {
+        this.webClient = webClient;
     }
 
     @Override
@@ -49,15 +38,9 @@ public class ApodServiceImpl implements ApodService {
                         .build())
                 .retrieve()
                 .bodyToMono(ApodResponse[].class) // Получаем массив
-                .map(apodResponses -> apodResponses.length > 0 ? apodResponses[0] : null) // Берем первый элемент
+                .map(apodResponses -> apodResponses.length > 0 ? apodResponses[0] : null)
                 .doOnNext(response -> log.info("Ответ от NASA random: {}", response))
                 .doOnError(error -> log.error("Ошибка при запросе случайного фото: {}", error.getMessage()));
-    }
-
-    @SuppressWarnings("unused")
-    private Mono<ApodResponse> getTodayPhotoFallback(Throwable throwable) {
-        log.error("Ошибка в Circuit Breaker для getTodayPhoto: {}", throwable.getMessage());
-        return Mono.just(circuitResponse);
     }
 
     @SuppressWarnings("unused")

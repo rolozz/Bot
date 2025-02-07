@@ -1,6 +1,6 @@
 package com.cor.botservice.configs;
 
-import com.cor.botservice.components.MyInlineBot;
+import com.cor.botservice.components.bots.telegram.MyInlineBot;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.TelegramBotsApi;

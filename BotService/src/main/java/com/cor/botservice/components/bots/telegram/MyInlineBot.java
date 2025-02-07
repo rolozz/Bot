@@ -1,4 +1,4 @@
-package com.cor.botservice.components;
+package com.cor.botservice.components.bots.telegram;
 
 
 import com.cor.botservice.services.TelegramBotService;

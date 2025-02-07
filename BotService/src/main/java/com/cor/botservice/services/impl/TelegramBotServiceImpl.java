@@ -1,7 +1,7 @@
 package com.cor.botservice.services.impl;
 
 import com.cor.botservice.dto.ApodResponse;
-import com.cor.botservice.services.ApodService;
+import com.cor.botservice.client.nasa.ApodService;
 import com.cor.botservice.services.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,15 +26,15 @@ public class TelegramBotServiceImpl implements TelegramBotService {
     private static final Random RANDOM = new Random();
     private final ApodService apodService;
 
+    @Override
     public void handleInlineQuery(InlineQuery inlineQuery, TelegramLongPollingBot bot) {
         InlineQueryResultArticle predictionResult = createPredictionResult();
-        InlineQueryResultArticle apodResult = createApodResult();
         InlineQueryResultArticle randomApodResult = createRandomApodResult();
 
         AnswerInlineQuery answer = new AnswerInlineQuery();
         answer.setInlineQueryId(inlineQuery.getId());
-        answer.setResults(List.of(predictionResult, apodResult, randomApodResult));
-        answer.setCacheTime(1);
+        answer.setResults(List.of(predictionResult, randomApodResult));
+        answer.setCacheTime(0);
 
         executeSafely(answer, bot);
     }
@@ -49,30 +49,6 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         predictionResult.setInputMessageContent(predictionContent);
         predictionResult.setThumbnailUrl("https://i.postimg.cc/SQGYpbFg/owl.jpg");
         return predictionResult;
-    }
-
-    private InlineQueryResultArticle createApodResult() {
-        InlineQueryResultArticle apodResult = new InlineQueryResultArticle();
-        apodResult.setId("2");
-        apodResult.setTitle("Получить фото дня NASA 📷");
-
-        apodResult.setThumbnailUrl("https://i.postimg.cc/mkVP3CNv/ND.jpg");
-
-        ApodResponse apod = getApodPhoto();
-        String messageText;
-
-        if (apod != null && apod.getUrl() != null) {
-            messageText = "📷 *Фото дня от NASA*\n\n"
-                    + "*" + apod.getUrl() + "*\n\n"
-                    + apod.getExplanation();
-        } else {
-            messageText = "🌌 К сожалению, фото дня недоступно.";
-        }
-
-        InputTextMessageContent content = createInputTextMessageContent(messageText);
-        apodResult.setInputMessageContent(content);
-
-        return apodResult;
     }
 
     private InlineQueryResultArticle createRandomApodResult() {
@@ -119,10 +95,6 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                 "Скоро исполнится твое желание!"
         );
         return predictions.get(RANDOM.nextInt(predictions.size()));
-    }
-
-    private ApodResponse getApodPhoto() {
-        return apodService.getTodayPhoto().block();
     }
 
     private ApodResponse getRandomApodPhoto() {

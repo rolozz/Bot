@@ -1,4 +1,4 @@
-package com.cor.botservice.client;
+package com.cor.botservice.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,4 +23,13 @@ public class WebClientConfig {
                 .build();
     }
 
+    @Bean
+    public WebClient translateWebClient() {
+        return WebClient.builder()
+                .baseUrl("http://localhost:5000")
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.create()
+                        .responseTimeout(Duration.ofSeconds(10))))
+                .build();
+    }
 }

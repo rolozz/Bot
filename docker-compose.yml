@@ -7,3 +7,17 @@ services:
       POSTGRES_PASSWORD: root
     ports:
       - "5432:5432"
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: libretranslate
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - LT_LOAD_ONLY=en,ru
+      - LT_API_KEYS=false
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
