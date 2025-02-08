@@ -13,9 +13,10 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ApodResponse implements Serializable {
-    private String title;
-    private String date;
-    private String url;
-    private String explanation;
+public class RequestToDataBase implements Serializable {
+
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private String username;
 }

@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 public class ApodServiceImpl implements ApodService {
 
     private static final ApodResponse circuitResponse = new ApodResponse("Хьюстон, у нас проблемы",
-            "Сервис не доступен");
+            "Сервис не доступен",null,null);
 
     private final WebClient webClient;
     @Value("${telegram.bot.nasa_key}")
@@ -37,7 +37,7 @@ public class ApodServiceImpl implements ApodService {
                         .queryParam("count", 1)
                         .build())
                 .retrieve()
-                .bodyToMono(ApodResponse[].class) // Получаем массив
+                .bodyToMono(ApodResponse[].class)
                 .map(apodResponses -> apodResponses.length > 0 ? apodResponses[0] : null)
                 .doOnNext(response -> log.info("Ответ от NASA random: {}", response))
                 .doOnError(error -> log.error("Ошибка при запросе случайного фото: {}", error.getMessage()));

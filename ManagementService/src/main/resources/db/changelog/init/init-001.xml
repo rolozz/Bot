@@ -1,63 +1,85 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="00001" author="markusha">
-        <createTable tableName="joke">
-            <column name="uuid" type="uuid">
+    <!-- Создание таблицы Chat -->
+    <changeSet id="001-create-chat" author="markusha">
+        <createTable tableName="chat">
+            <column name="uuid" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="is_active" type="boolean"/>
+            <column name="name" type="VARCHAR(255)" />
+            <column name="count" type="BIGINT" />
         </createTable>
-        <createIndex indexName="idx_is_active" tableName="joke">
+    </changeSet>
+
+    <!-- Создание таблицы Joke -->
+    <changeSet id="002-create-joke" author="markusha">
+        <createTable tableName="joke">
+            <column name="uuid" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)" />
+            <column name="is_active" type="BOOLEAN" />
+            <column name="version" type="BIGINT" defaultValue="0" />
+        </createTable>
+
+        <!-- Добавление индекса на поле is_active -->
+        <createIndex indexName="idx_joke_is_active" tableName="joke">
             <column name="is_active"/>
         </createIndex>
     </changeSet>
 
-    <changeSet id="00002" author="markusha">
+    <!-- Создание таблицы Subscribe -->
+    <changeSet id="003-create-subscribe" author="markusha">
         <createTable tableName="subscribe">
-            <column name="username" type="varchar(255)">
+            <column name="uuid" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="city" type="varchar(255)"/>
-            <column name="count" type="bigint"/>
+            <column name="username" type="VARCHAR(255)" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="city" type="VARCHAR(255)" />
+            <column name="count" type="BIGINT" />
         </createTable>
-        <createIndex indexName="idx_city" tableName="subscribe">
+
+        <!-- Добавление индекса на поле city -->
+        <createIndex indexName="idx_subscribe_city" tableName="subscribe">
             <column name="city"/>
         </createIndex>
     </changeSet>
 
-    <changeSet id="00003" author="markusha">
-        <createTable tableName="request_info">
-            <column name="uuid" type="uuid">
-                <constraints primaryKey="true" nullable="false"/>
+    <!-- Создание промежуточной таблицы ManyToMany Subscribe - Chat -->
+    <changeSet id="004-create-subscribe-chat" author="markusha">
+        <createTable tableName="subscribe_chat">
+            <column name="subscribe_id" type="UUID">
+                <constraints nullable="false"/>
             </column>
-            <column name="chat_id" type="varchar(255)">
-                <constraints nullable="true"/>
-            </column>
-            <column name="username" type="varchar(255)">
+            <column name="chat_id" type="UUID">
                 <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
 
-    <changeSet id="00004" author="markusha">
+    <!-- Добавление составного первичного ключа -->
+    <changeSet id="005-add-primary-key-subscribe-chat" author="markusha">
+        <addPrimaryKey columnNames="subscribe_id, chat_id" constraintName="pk_subscribe_chat" tableName="subscribe_chat"/>
+    </changeSet>
+
+    <!-- Внешние ключи -->
+    <changeSet id="006-add-foreign-keys-subscribe-chat" author="markusha">
         <addForeignKeyConstraint
-                baseTableName="request_info"
-                baseColumnNames="username"
-                referencedTableName="subscribe"
-                referencedColumnNames="username"
-                constraintName="fk_request_info_subscribe_username"/>
+                baseTableName="subscribe_chat" baseColumnNames="subscribe_id"
+                referencedTableName="subscribe" referencedColumnNames="uuid"
+                constraintName="fk_subscribe_chat_subscribe"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="subscribe_chat" baseColumnNames="chat_id"
+                referencedTableName="chat" referencedColumnNames="uuid"
+                constraintName="fk_subscribe_chat_chat"
+                onDelete="CASCADE"/>
     </changeSet>
 
 </databaseChangeLog>

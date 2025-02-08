@@ -21,6 +21,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.liquibase:liquibase-core'
+    implementation 'org.springframework.kafka:spring-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     runtimeOnly 'org.postgresql:postgresql'
     implementation group: 'org.mapstruct', name: 'mapstruct', version: '1.5.5.Final'
     implementation group: 'org.mapstruct', name: 'mapstruct-processor', version: '1.5.5.Final'

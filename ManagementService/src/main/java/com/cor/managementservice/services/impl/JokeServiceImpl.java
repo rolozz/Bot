@@ -42,8 +42,8 @@ public class JokeServiceImpl implements JokerService {
     }
 
     private void saveJokesToFile(List<JokeDto> jokeDtoList) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        File file = new File(backupFilePath);
+        final var objectMapper = new ObjectMapper();
+        final var file = new File(backupFilePath);
         try {
             if (file.exists()) {
                 List<JokeDto> existingJokes = readJokesFromFile(file, objectMapper);

@@ -1,9 +1,27 @@
+server:
+  port: 8081
+
 spring:
   application:
    name: BotService
 
-server:
-  port: 8081
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: microservice-a-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
 
 telegram:
   bot:
@@ -12,10 +30,18 @@ telegram:
     nasa_key: nS5zpfblxt2aIWGfAbTX0g6RgiowykErhhAMo6hm
 
 
+
 resilience4j:
   circuitbreaker:
     instances:
       getRandomPhoto:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5000ms
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 2
+      getLocationName:
         registerHealthIndicator: true
         failureRateThreshold: 50
         waitDurationInOpenState: 5000ms

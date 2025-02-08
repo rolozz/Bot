@@ -14,7 +14,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Slf4j
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-
 public class MyInlineBot extends TelegramLongPollingBot {
 
 

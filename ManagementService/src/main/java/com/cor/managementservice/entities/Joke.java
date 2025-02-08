@@ -2,6 +2,7 @@ package com.cor.managementservice.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,5 +26,6 @@ public class Joke {
     UUID uuid = UUID.randomUUID();
     String name;
     Boolean isActive;
-
+    @Version
+    Long version;
 }
