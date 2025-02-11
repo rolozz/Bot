@@ -1,85 +1,53 @@
-<databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.8.xsd">
 
-    <!-- Создание таблицы Chat -->
-    <changeSet id="001-create-chat" author="markusha">
-        <createTable tableName="chat">
-            <column name="uuid" type="UUID">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="name" type="VARCHAR(255)" />
-            <column name="count" type="BIGINT" />
-        </createTable>
-    </changeSet>
-
-    <!-- Создание таблицы Joke -->
-    <changeSet id="002-create-joke" author="markusha">
-        <createTable tableName="joke">
-            <column name="uuid" type="UUID">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="name" type="VARCHAR(255)" />
-            <column name="is_active" type="BOOLEAN" />
-            <column name="version" type="BIGINT" defaultValue="0" />
-        </createTable>
-
-        <!-- Добавление индекса на поле is_active -->
-        <createIndex indexName="idx_joke_is_active" tableName="joke">
-            <column name="is_active"/>
-        </createIndex>
-    </changeSet>
-
-    <!-- Создание таблицы Subscribe -->
-    <changeSet id="003-create-subscribe" author="markusha">
+    <!-- Создание таблицы subscribe -->
+    <changeSet id="1739096679647-1-create-subscribe-table" author="markusha">
         <createTable tableName="subscribe">
             <column name="uuid" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="username" type="VARCHAR(255)" />
-            <column name="name" type="VARCHAR(255)" />
-            <column name="city" type="VARCHAR(255)" />
-            <column name="count" type="BIGINT" />
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)"/>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="city" type="VARCHAR(255)"/>
+            <column name="count" type="BIGINT"/>
         </createTable>
+    </changeSet>
 
-        <!-- Добавление индекса на поле city -->
+    <!-- Индексы для таблицы subscribe -->
+    <changeSet id="1739096668628-1-add-indexes-subscribe" author="markusha">
+        <createIndex indexName="idx_subscribe_id" tableName="subscribe">
+            <column name="id"/>
+        </createIndex>
+
         <createIndex indexName="idx_subscribe_city" tableName="subscribe">
             <column name="city"/>
         </createIndex>
     </changeSet>
 
-    <!-- Создание промежуточной таблицы ManyToMany Subscribe - Chat -->
-    <changeSet id="004-create-subscribe-chat" author="markusha">
-        <createTable tableName="subscribe_chat">
-            <column name="subscribe_id" type="UUID">
-                <constraints nullable="false"/>
+    <!-- Создание таблицы joke -->
+    <changeSet id="1739096687712-1-create-joke-table" author="markusha">
+        <createTable tableName="joke">
+            <column name="uuid" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="chat_id" type="UUID">
-                <constraints nullable="false"/>
-            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="is_active" type="BOOLEAN"/>
+            <column name="version" type="BIGINT" defaultValue="0"/>
         </createTable>
     </changeSet>
 
-    <!-- Добавление составного первичного ключа -->
-    <changeSet id="005-add-primary-key-subscribe-chat" author="markusha">
-        <addPrimaryKey columnNames="subscribe_id, chat_id" constraintName="pk_subscribe_chat" tableName="subscribe_chat"/>
-    </changeSet>
-
-    <!-- Внешние ключи -->
-    <changeSet id="006-add-foreign-keys-subscribe-chat" author="markusha">
-        <addForeignKeyConstraint
-                baseTableName="subscribe_chat" baseColumnNames="subscribe_id"
-                referencedTableName="subscribe" referencedColumnNames="uuid"
-                constraintName="fk_subscribe_chat_subscribe"
-                onDelete="CASCADE"/>
-
-        <addForeignKeyConstraint
-                baseTableName="subscribe_chat" baseColumnNames="chat_id"
-                referencedTableName="chat" referencedColumnNames="uuid"
-                constraintName="fk_subscribe_chat_chat"
-                onDelete="CASCADE"/>
+    <!-- Индекс для таблицы joke -->
+    <changeSet id="1739096691502-1-add-index-joke" author="markusha">
+        <createIndex indexName="idx_joke_is_active" tableName="joke">
+            <column name="is_active"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

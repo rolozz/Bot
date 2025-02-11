@@ -25,8 +25,10 @@ public class Subscribe {
 
     @Id
     UUID uuid = UUID.randomUUID();
+    Long id;
     String username;
-    String name;
+    String firstName;
+    String lastName;
     String city;
     Long count;
 
@@ -35,10 +37,5 @@ public class Subscribe {
         if (count == null) {
             count = 1L;
         }
-    }
-
-    @PreUpdate
-    private void incrementCount() {
-        count++;
     }
 }

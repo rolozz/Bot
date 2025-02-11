@@ -10,17 +10,16 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      retries: 3
-      properties:
-        enable.idempotence: true
     consumer:
-      group-id: microservice-b-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.cor.managementservice.dto.RequestToDataBase
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "*"
+      group-id: b-group
 
   datasource:
     url: jdbc:postgresql://localhost:5432/manager
@@ -48,3 +47,8 @@ spring:
 
 joke:
   backup-file: D:/BD/reserve.json
+
+kafka:
+  topic:
+    request: to-database-event
+    response: from-database-event

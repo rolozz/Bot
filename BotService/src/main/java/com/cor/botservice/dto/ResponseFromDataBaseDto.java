@@ -10,16 +10,16 @@ import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
 
-@Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
+@Getter
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RequestToDataBase implements Serializable {
+public class ResponseFromDataBaseDto implements Serializable {
 
     Long id;
-    String firstName;
-    String lastName;
-    String username;
+    String prediction;
+    String city;
+
 }

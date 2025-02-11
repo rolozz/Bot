@@ -1,11 +1,19 @@
 package com.cor.botservice.services.impl;
 
 import com.cor.botservice.client.nasa.ApodService;
+import com.cor.botservice.client.weather.WeatherService;
 import com.cor.botservice.dto.ApodResponse;
-import com.cor.botservice.dto.RequestToDataBase;
+import com.cor.botservice.dto.ResponseFromDataBaseDto;
+import com.cor.botservice.mappers.DataBaseMapper;
+import com.cor.botservice.messaging.KafkaConsumerService;
+import com.cor.botservice.messaging.KafkaProducerService;
 import com.cor.botservice.services.TelegramBotService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
@@ -16,44 +24,61 @@ import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResultArticle;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Random;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class TelegramBotServiceImpl implements TelegramBotService {
 
-    private static final Random RANDOM = new Random();
-    private final ApodService apodService;
+    final ApodService apodService;
+    final KafkaProducerService kafkaProducerService;
+    final DataBaseMapper dataBaseMapper;
+    final RedisTemplate<Long, ResponseFromDataBaseDto> template;
+    final WeatherService weatherService;
+    final RetryTemplate retryTemplate;
 
     @Override
     public void handleInlineQuery(InlineQuery inlineQuery, TelegramLongPollingBot bot) {
-        User from = inlineQuery.getFrom();
+        User user = inlineQuery.getFrom();
+        kafkaProducerService.send(dataBaseMapper.request(user));
+        log.info("Создан объект RequestToDataBase: {}", user);
+        final var weather =  "Напиши город Маркуше, геолокацию ж вы ,суки, скрываете";
 
-        RequestToDataBase request = new RequestToDataBase();
-        request.setId(from.getId());
-        request.setFirstName(from.getFirstName());
-        request.setLastName(from.getLastName());
-        request.setUsername(from.getUserName());
+        Long checkId = user.getId();
+        ResponseFromDataBaseDto response = fromRedis(checkId);
+        if(response.getCity() != null) {
+            InlineQueryResultArticle predictionResult = createPredictionResult(response.getPrediction());
+            InlineQueryResultArticle randomApodResult = createRandomApodResult();
+            InlineQueryResultArticle randomWeather = createWeather(response.getCity());
 
-        log.info("Создан объект RequestToDataBase: {}", request);
-        //InlineQueryResultArticle predictionResult = createPredictionResult();
-        InlineQueryResultArticle randomApodResult = createRandomApodResult();
+            AnswerInlineQuery answer = new AnswerInlineQuery();
+            answer.setInlineQueryId(inlineQuery.getId());
+            answer.setResults(List.of(predictionResult, randomApodResult, randomWeather));
+            answer.setCacheTime(0);
 
-        AnswerInlineQuery answer = new AnswerInlineQuery();
-        answer.setInlineQueryId(inlineQuery.getId());
-        answer.setResults(List.of(randomApodResult));
-        answer.setCacheTime(1);
+            executeSafely(answer, bot);
+        }else {
+            InlineQueryResultArticle predictionResult = createPredictionResult(response.getPrediction());
+            InlineQueryResultArticle randomApodResult = createRandomApodResult();
+            InlineQueryResultArticle randomWeather = createWeather(weather);
 
-        executeSafely(answer, bot);
+            AnswerInlineQuery answer = new AnswerInlineQuery();
+            answer.setInlineQueryId(inlineQuery.getId());
+            answer.setResults(List.of(predictionResult, randomApodResult, randomWeather));
+            answer.setCacheTime(0);
+
+            executeSafely(answer, bot);
+        }
     }
 
     private InlineQueryResultArticle createPredictionResult(String joke) {
         InlineQueryResultArticle predictionResult = new InlineQueryResultArticle();
         predictionResult.setId("1");
-        predictionResult.setTitle("Получить предсказание ✨");
+        predictionResult.setTitle("Получить на лицо ✨");
 
         InputTextMessageContent predictionContent = new InputTextMessageContent();
         predictionContent.setMessageText(formatAsQuote(joke));
@@ -64,7 +89,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
     private InlineQueryResultArticle createRandomApodResult() {
         InlineQueryResultArticle randomApodResult = new InlineQueryResultArticle();
-        randomApodResult.setId("3");
+        randomApodResult.setId("2");
         randomApodResult.setTitle("Получить случайное фото 🎲");
 
         randomApodResult.setThumbnailUrl("https://i.postimg.cc/1zNNxgsF/AP2.jpg");
@@ -86,6 +111,43 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         randomApodResult.setInputMessageContent(content);
 
         return randomApodResult;
+    }
+
+    private InlineQueryResultArticle createWeather(String city){
+        InlineQueryResultArticle weatherResult = new InlineQueryResultArticle();
+        weatherResult.setId("3");
+        weatherResult.setTitle("Погода в твоей дыре");
+        weatherResult.setThumbnailUrl("https://i.postimg.cc/MTvvycnK/671ba6ce4a381565102388.webp");
+        Mono<String> weatherMono = weatherService.getWeather(city);
+        String messageText;
+
+        messageText = weatherMono.block();
+
+        if (messageText != null) {
+            messageText = "Погода: " + "\n"
+                    + messageText;
+        } else {
+            messageText = "🌍 Не удалось получить данные о погоде для города " + city;
+        }
+
+        InputTextMessageContent content = createInputTextMessageContent(messageText);
+        weatherResult.setInputMessageContent(content);
+
+        return weatherResult;
+    }
+
+    private ResponseFromDataBaseDto fromRedis(Long id) {
+        return retryTemplate.execute(context -> {
+            ResponseFromDataBaseDto response = template.opsForValue().get(id);
+            if (response != null) {
+                log.info("Ответ найден в Redis для ID: {}. Попытка № {}", id, context.getRetryCount());
+                template.delete(id);
+                return response;
+            } else {
+                log.warn("Ответ не найден в Redis для ID: {}. Попытка № {}", id, context.getRetryCount());
+                throw new RuntimeException("Ответ не найден в Redis");
+            }
+        });
     }
 
     private void executeSafely(Object message, TelegramLongPollingBot bot) {

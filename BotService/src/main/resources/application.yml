@@ -7,29 +7,38 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
+    admin:
+      properties:
+        bootstrap.servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      retries: 3
-      properties:
-        enable.idempotence: true
     consumer:
-      group-id: microservice-a-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.cor.botservice.dto.ResponseFromDataBaseDto
         spring.json.trusted.packages: "*"
+      group-id: a-group
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
 
 telegram:
   bot:
-    username: YourDaddyBroBot
-    token: 1041138600:AAH8y_TV9GAQCYsA93hzmiG11icnqKoUYC0
-    nasa_key: nS5zpfblxt2aIWGfAbTX0g6RgiowykErhhAMo6hm
-
-
+    username: ${TELEGRAM_BOT_USERNAME}
+    token: ${TELEGRAM_BOT_TOKEN}
+    nasa_key: ${TELEGRAM_BOT_NASA_KEY}
+    weather_key: ${TELEGRAM_BOT_WEATHER_KEY}
 
 resilience4j:
   circuitbreaker:
@@ -41,10 +50,15 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 5
         permittedNumberOfCallsInHalfOpenState: 2
-      getLocationName:
+      getWeather:
         registerHealthIndicator: true
         failureRateThreshold: 50
         waitDurationInOpenState: 5000ms
         slidingWindowSize: 10
         minimumNumberOfCalls: 5
         permittedNumberOfCallsInHalfOpenState: 2
+
+kafka:
+  topic:
+    request: to-database-event
+    response: from-database-event

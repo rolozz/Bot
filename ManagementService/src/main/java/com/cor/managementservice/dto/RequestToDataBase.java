@@ -8,17 +8,18 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @ToString
-public class RequestToDataBase {
+public class RequestToDataBase implements Serializable {
 
     Long id;
     String firstName;
     String lastName;
     String username;
-    String city = null;
 }

@@ -7,22 +7,6 @@ services:
       POSTGRES_PASSWORD: root
     ports:
       - "5432:5432"
-      -
-  libretranslate:
-    image: libretranslate/libretranslate:latest
-    container_name: libretranslate
-    restart: unless-stopped
-    ports:
-      - "5000:5000"
-    environment:
-      - LT_LOAD_ONLY=en,ru
-      - LT_API_KEYS=false
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: "512M"
-
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -47,5 +31,9 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_MIN_INSYNC_REPLICAS: 1
-      KAFKA_ENABLE_IDEMPOTENCE: "true"
+
+  redis:
+     image: redis:latest
+     container_name: redis
+     ports:
+      - "6379:6379"

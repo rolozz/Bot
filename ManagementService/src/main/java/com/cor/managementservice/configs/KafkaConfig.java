@@ -1,6 +1,6 @@
-package com.cor.botservice.configs;
+package com.cor.managementservice.configs;
 
-import com.cor.botservice.dto.RequestToDataBase;
+import com.cor.managementservice.dto.ResponseFromDataBaseDto;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -12,8 +12,9 @@ import org.springframework.kafka.core.ProducerFactory;
 public class KafkaConfig {
 
     @Bean
-    public KafkaTemplate<String, RequestToDataBase> kafkaTemplate(
-            ProducerFactory<String, RequestToDataBase> producerFactory) {
+    public KafkaTemplate<String, ResponseFromDataBaseDto> kafkaTemplate(
+            ProducerFactory<String, ResponseFromDataBaseDto> producerFactory) {
         return new KafkaTemplate<>(producerFactory);
     }
+
 }
