@@ -46,11 +46,10 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         User user = inlineQuery.getFrom();
         kafkaProducerService.send(dataBaseMapper.request(user));
         log.info("Создан объект RequestToDataBase: {}", user);
-        final var weather =  "Напиши город Маркуше, геолокацию ж вы ,суки, скрываете";
 
         Long checkId = user.getId();
         ResponseFromDataBaseDto response = fromRedis(checkId);
-        if(response.getCity() != null) {
+
             InlineQueryResultArticle predictionResult = createPredictionResult(response.getPrediction());
             InlineQueryResultArticle randomApodResult = createRandomApodResult();
             InlineQueryResultArticle randomWeather = createWeather(response.getCity());
@@ -61,18 +60,6 @@ public class TelegramBotServiceImpl implements TelegramBotService {
             answer.setCacheTime(0);
 
             executeSafely(answer, bot);
-        }else {
-            InlineQueryResultArticle predictionResult = createPredictionResult(response.getPrediction());
-            InlineQueryResultArticle randomApodResult = createRandomApodResult();
-            InlineQueryResultArticle randomWeather = createWeather(weather);
-
-            AnswerInlineQuery answer = new AnswerInlineQuery();
-            answer.setInlineQueryId(inlineQuery.getId());
-            answer.setResults(List.of(predictionResult, randomApodResult, randomWeather));
-            answer.setCacheTime(0);
-
-            executeSafely(answer, bot);
-        }
     }
 
     private InlineQueryResultArticle createPredictionResult(String joke) {
@@ -118,21 +105,19 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         weatherResult.setId("3");
         weatherResult.setTitle("Погода в твоей дыре");
         weatherResult.setThumbnailUrl("https://i.postimg.cc/MTvvycnK/671ba6ce4a381565102388.webp");
-        Mono<String> weatherMono = weatherService.getWeather(city);
         String messageText;
-
-        messageText = weatherMono.block();
-
-        if (messageText != null) {
+        if (city == null){
+            messageText = "Чиркани город Маркуше, геолокацию же,суки,вы все скрываете";
+            InputTextMessageContent content = createInputTextMessageContent(messageText);
+            weatherResult.setInputMessageContent(content);
+        } else {
+            Mono<String> weatherMono = weatherService.getWeather(city);
+            messageText = weatherMono.block();
             messageText = "Погода: " + "\n"
                     + messageText;
-        } else {
-            messageText = "🌍 Не удалось получить данные о погоде для города " + city;
-        }
-
-        InputTextMessageContent content = createInputTextMessageContent(messageText);
+            InputTextMessageContent content = createInputTextMessageContent(messageText);
         weatherResult.setInputMessageContent(content);
-
+        }
         return weatherResult;
     }
 
