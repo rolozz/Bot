@@ -44,4 +44,12 @@ public class WebClientConfig {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
+
+    @Bean
+    public WebClient commitClient() {
+        return WebClient.builder()
+                .baseUrl("http://localhost:8082")
+                .build();
+    }
+
 }

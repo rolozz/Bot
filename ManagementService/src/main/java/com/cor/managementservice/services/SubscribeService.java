@@ -7,4 +7,6 @@ public interface SubscribeService {
 
     ResponseFromDataBaseDto save(RequestToDataBase request);
 
+    void cityCommit(Long id, String city);
+
 }

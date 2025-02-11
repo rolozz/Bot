@@ -5,7 +5,6 @@ import com.cor.botservice.client.weather.WeatherService;
 import com.cor.botservice.dto.ApodResponse;
 import com.cor.botservice.dto.ResponseFromDataBaseDto;
 import com.cor.botservice.mappers.DataBaseMapper;
-import com.cor.botservice.messaging.KafkaConsumerService;
 import com.cor.botservice.messaging.KafkaProducerService;
 import com.cor.botservice.services.TelegramBotService;
 import lombok.AccessLevel;
@@ -50,16 +49,16 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         Long checkId = user.getId();
         ResponseFromDataBaseDto response = fromRedis(checkId);
 
-            InlineQueryResultArticle predictionResult = createPredictionResult(response.getPrediction());
-            InlineQueryResultArticle randomApodResult = createRandomApodResult();
-            InlineQueryResultArticle randomWeather = createWeather(response.getCity());
+        InlineQueryResultArticle predictionResult = createPredictionResult(response.getPrediction());
+        InlineQueryResultArticle randomApodResult = createRandomApodResult();
+        InlineQueryResultArticle randomWeather = createWeather(response.getCity());
 
-            AnswerInlineQuery answer = new AnswerInlineQuery();
-            answer.setInlineQueryId(inlineQuery.getId());
-            answer.setResults(List.of(predictionResult, randomApodResult, randomWeather));
-            answer.setCacheTime(0);
+        AnswerInlineQuery answer = new AnswerInlineQuery();
+        answer.setInlineQueryId(inlineQuery.getId());
+        answer.setResults(List.of(predictionResult, randomApodResult, randomWeather));
+        answer.setCacheTime(0);
 
-            executeSafely(answer, bot);
+        executeSafely(answer, bot);
     }
 
     private InlineQueryResultArticle createPredictionResult(String joke) {
@@ -100,15 +99,17 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         return randomApodResult;
     }
 
-    private InlineQueryResultArticle createWeather(String city){
+    private InlineQueryResultArticle createWeather(String city) {
         InlineQueryResultArticle weatherResult = new InlineQueryResultArticle();
         weatherResult.setId("3");
         weatherResult.setTitle("Погода в твоей дыре");
         weatherResult.setThumbnailUrl("https://i.postimg.cc/MTvvycnK/671ba6ce4a381565102388.webp");
         String messageText;
-        if (city == null){
-            messageText = "Чиркани город Маркуше, геолокацию же,суки,вы все скрываете";
+        if (city == null) {
+            messageText = "Напиши город, далее не понадобится ->.\n"
+                    + "💬 [Написать боту в личку](https://t.me/YourDaddyBroBot?start=set_city)";
             InputTextMessageContent content = createInputTextMessageContent(messageText);
+            content.setParseMode("Markdown");
             weatherResult.setInputMessageContent(content);
         } else {
             Mono<String> weatherMono = weatherService.getWeather(city);
@@ -116,7 +117,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
             messageText = "Погода: " + "\n"
                     + messageText;
             InputTextMessageContent content = createInputTextMessageContent(messageText);
-        weatherResult.setInputMessageContent(content);
+            weatherResult.setInputMessageContent(content);
         }
         return weatherResult;
     }

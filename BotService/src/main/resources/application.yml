@@ -57,6 +57,13 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 5
         permittedNumberOfCallsInHalfOpenState: 2
+      sendCity:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5000ms
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 2
 
 kafka:
   topic:

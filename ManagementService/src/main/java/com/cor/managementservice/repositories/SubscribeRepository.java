@@ -9,9 +9,10 @@ import java.util.UUID;
 
 @Repository
 public interface SubscribeRepository extends JpaRepository<Subscribe, UUID> {
-    Boolean findSubscribeById(Long id);
 
     Boolean existsById(Long id);
 
     Optional<Subscribe> findById(Long id);
+
+    Subscribe findSubscribeById(Long id);
 }
